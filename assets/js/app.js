@@ -14,15 +14,39 @@ Class('App').inherits(Widget)({
 
             var S = Snap(1000, 800);
 
-            var grid = [
-                ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'],
-                ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'],
-                ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'],
-                ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'],
-                ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'],
-                ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none']
-            ];
+            var parseCells = function(txt) {
+                var cells = [];
+                txt.replace(/^\s+|\s+$/).split(/\n|\|/).forEach(function(cell) {
+                    var match = cell.match(/(-?\d+),(-?\d+)(L?)(R?)/);
+                    if(!match) {
+                        throw("Bad cell: " + cell);
+                    }
+                    if(match[3]) { // L
+                        cells.push([parseInt(match[1], 10), parseInt(match[2], 10), 'L']);
+                    }
+                    if(match[4]) { // R
+                        cells.push([parseInt(match[1], 10), parseInt(match[2], 10), 'R']);
+                    }
+                });
+                console.log(cells);
+                return cells;
+            };
 
+            var map1 = "\
+-3,-2LR | -2,-2LR | -1,-2LR | 0,-2LR | 1,-2L\n\
+-3,-1LR | -2,-1LR | -1,-1LR | 0,-1LR | 1,-1LR | 2,-1L\n\
+-3,0R | -2,0LR | -1,0LR | 0,0LR | 1,0LR | 2,0LR\n\
+-2,1R | -1,1LR | 0,1LR | 1,1LR | 2,1LR\n\
+            ";
+            var cells = parseCells(map1);
+            // var cells = [
+            //     [0, 0, 'L'], [0, 0, 'R'], [1, 0, 'L'], [1, 0, 'R'],
+            //     [0, 1, 'L'], [0, 1, 'R'], [1, 1, 'L'], [1, 1, 'R']
+            // ];
+            // var cells = parseCells('0,0LR|0,1LR|1,0LR|1,1LR');
+
+            console.log("CELLS: ");
+            console.log(cells);
             var SIDE = 80;
             var HEIGHT = Math.tan(Math.PI / 3) * SIDE / 2;
 
@@ -30,48 +54,34 @@ Class('App').inherits(Widget)({
                 return x + ',' + y;
             };
 
-            // var COORD = function(x, y, z) {
-            //     gridY = (y * HEIGHT);
-            //     gridX = ((Math.floor(x / 2) * SIDE) - (y * SIDE / 2)) + YOLO_OFFSET;
-            //     if(z % 2 === 0) {
-            //         return
-            //     } else {
-
-            //     }
-            // };
-
-            var YOLO_OFFSET = 200;
+            var YOLO_OFFSET_X = 300;
+            var YOLO_OFFSET_Y = 300;
 
             var x, y;
             var tr;
-            grid.forEach(function(row, rowIndex) {
-                row.forEach(function(cell, cellIndex) {
 
-                    // rowIndex = rowIndex - 2;
-                    // cellIndex = cellIndex - 2;
+            cells.forEach(function(cell) {
+                y = (cell[1] * HEIGHT) + YOLO_OFFSET_Y;
+                x = (cell[0] * SIDE) - (cell[1] * SIDE / 2) + YOLO_OFFSET_X;
 
-                    y = (rowIndex * HEIGHT);
-                    x = ((Math.floor(cellIndex / 2) * SIDE) - (rowIndex * SIDE / 2)) + YOLO_OFFSET;
+                if(cell[2] === 'L') {
+                    tr = S.path('M' + c(x, y) + 'L' + c(x + SIDE/2, y + HEIGHT) + 'L' + c(x - SIDE/2, y + HEIGHT) + 'L' + c(x, y));
+                    tr.attr({
+                        fill : 'none',
+                        strokeWidth : 2,
+                        stroke : '#000'
+                    });
+                    // S.text(x + 5, y + 10, [cellIndex / 2 - 1, rowIndex - 1, cellIndex / 2 - rowIndex].join(','));
+                    S.text(x + 5, y + 10, [cell[0], cell[1], cell[0] - cell[1]].join(','));
+                } else {
+                    tr = S.path('M' + c(x, y) + 'L' + c(x + SIDE, y) + 'L' + c(x + SIDE/2, y + HEIGHT) + 'L' + c(x, y));
+                    tr.attr({
+                        fill : 'none',
+                        strokeWidth : 2,
+                        stroke : '#000'
+                    });
 
-                    if(cellIndex % 2 === 0) {
-                        tr = S.path('M' + c(x, y) + 'L' + c(x + SIDE/2, y + HEIGHT) + 'L' + c(x - SIDE/2, y + HEIGHT) + 'L' + c(x, y));
-                        tr.attr({
-                            fill : cell,
-                            strokeWidth : 2,
-                            stroke : '#000'
-                        });
-                        // S.text(x + 5, y + 10, [cellIndex / 2 - 1, rowIndex - 1, cellIndex / 2 - rowIndex].join(','));
-                        S.text(x + 5, y + 10, [cellIndex / 2, rowIndex, cellIndex / 2 - rowIndex].join(','));
-                    } else {
-                        tr = S.path('M' + c(x, y) + 'L' + c(x + SIDE, y) + 'L' + c(x + SIDE/2, y + HEIGHT) + 'L' + c(x, y));
-                        tr.attr({
-                            fill : cell,
-                            strokeWidth : 2,
-                            stroke : '#000'
-                        });
-
-                    }
-                });
+                }
             });
 
             var soldier = {
@@ -105,8 +115,8 @@ Class('App').inherits(Widget)({
                 var sprite;
                 var range, r;
                 var nx, ny;
-                gy = (unit.y * HEIGHT);
-                gx = ((unit.x * SIDE) - (unit.y * SIDE / 2)) + YOLO_OFFSET;
+                gy = (unit.y * HEIGHT) + YOLO_OFFSET_Y;
+                gx = ((unit.x * SIDE) - (unit.y * SIDE / 2)) + YOLO_OFFSET_X;
                 s = S.circle(gx, gy, 10);
                 s.attr({
                     fill : unit.faction,
