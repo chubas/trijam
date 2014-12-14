@@ -14,36 +14,14 @@ Class('App').inherits(Widget)({
 
             var S = Snap(1000, 800);
 
-            var parseCells = function(txt) {
-                var cells = [];
-                txt.replace(/^\s+|\s+$/).split(/\n|\|/).forEach(function(cell) {
-                    var match = cell.match(/(-?\d+),(-?\d+)(L?)(R?)/);
-                    if(!match) {
-                        throw("Bad cell: " + cell);
-                    }
-                    if(match[3]) { // L
-                        cells.push([parseInt(match[1], 10), parseInt(match[2], 10), 'L']);
-                    }
-                    if(match[4]) { // R
-                        cells.push([parseInt(match[1], 10), parseInt(match[2], 10), 'R']);
-                    }
-                });
-                console.log(cells);
-                return cells;
-            };
-
             var map1 = "\
 -3,-2LR | -2,-2LR | -1,-2LR | 0,-2LR | 1,-2L\n\
 -3,-1LR | -2,-1LR | -1,-1LR | 0,-1LR | 1,-1LR | 2,-1L\n\
 -3,0R | -2,0LR | -1,0LR | 0,0LR | 1,0LR | 2,0LR\n\
 -2,1R | -1,1LR | 0,1LR | 1,1LR | 2,1LR\n\
             ";
-            var cells = parseCells(map1);
-            // var cells = [
-            //     [0, 0, 'L'], [0, 0, 'R'], [1, 0, 'L'], [1, 0, 'R'],
-            //     [0, 1, 'L'], [0, 1, 'R'], [1, 1, 'L'], [1, 1, 'R']
-            // ];
-            // var cells = parseCells('0,0LR|0,1LR|1,0LR|1,1LR');
+            var map = Map.parseMap(map1);
+            var cells = map.cells;
 
             console.log("CELLS: ");
             console.log(cells);
