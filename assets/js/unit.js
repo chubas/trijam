@@ -25,6 +25,12 @@ Class('Unit')({
             return this;
         },
 
+        move : function(coords) {
+            var unit = this;
+            unit.x = unit.x + coords[0];
+            unit.y = unit.y + coords[1];
+        },
+
         _rotateCellCoord : function(coords) {
             var rx, ry, rz, nx, ny, nz, fx, fy, flr;
             rx = coords[0];

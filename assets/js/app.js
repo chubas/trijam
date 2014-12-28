@@ -41,8 +41,8 @@ Class('App').inherits(Widget)({
                 id : 'BAILACOMOJUANALACUBANA',
                 faction : 'blue',
                 hp : 6,
-                x : 2,
-                y : 3,
+                x : -2,
+                y : -1,
                 range : [
                     [[-1, -2, 'L'], 1]
                 ]
@@ -54,8 +54,6 @@ Class('App').inherits(Widget)({
             renderer.renderGrid();
             renderer.renderUnits();
 
-
-
             // units.forEach(function(unit) {
             //     drawUnit(unit);
             // });
@@ -66,6 +64,18 @@ Class('App').inherits(Widget)({
                     renderer.unitSprites[unit.id].remove(); // Refactor: too much information
                     renderer.renderUnit(unit);
                 });
+            });
+
+            var _coords = [[1, 0], [1, 1], [0, 1], [-1, 0], [-1, -1], [0, -1]];
+            var _index = 0;
+            $('#test-mov').on('click', function() {
+                units.forEach(function(unit) {
+                    console.log("Moving ", _coords[_index])
+                    unit.move(_coords[_index]);
+                    renderer.unitSprites[unit.id].remove();
+                    renderer.renderUnit(unit);
+                });
+                _index = (_index + 1) % _coords.length;
             });
 
             return;
