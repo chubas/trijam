@@ -1,5 +1,7 @@
 Class('MapRenderer')({
 
+    neutralCell : '#DDD',
+
     prototype : {
 
         map : null,
@@ -11,10 +13,14 @@ Class('MapRenderer')({
             }, this);
 
             this.snap = Snap(1000, 800);
-            this.side = 80;
+            this.side = this.side || 60;
             this.height = Math.tan(Math.PI/3) * this.side / 2;
 
             this.unitSprites = {};
+
+            // Used for repositioning the whole board (0,0 coord)
+            this.offsetX = 300;
+            this.offsetY = 240;
             // this.cellSprites = {};
         },
 
@@ -25,30 +31,30 @@ Class('MapRenderer')({
                 return x + ',' + y;
             };
 
-            var YOLO_OFFSET_X = 300;
-            var YOLO_OFFSET_Y = 200;
             var x, y;
             var tr;
 
             this.map.cells.forEach(function(cell) {
-                y = (cell[1] * renderer.height) + YOLO_OFFSET_Y;
-                x = (cell[0] * renderer.side) - (cell[1] * renderer.side / 2) + YOLO_OFFSET_X;
+                y = (cell[1] * renderer.height) + renderer.offsetY;
+                x = (cell[0] * renderer.side) - (cell[1] * renderer.side / 2) + renderer.offsetX;
 
                 if(cell[2] === 'L') {
                     tr = renderer.snap.path('M' + c(x, y) + 'L' + c(x + renderer.side/2, y + renderer.height) + 'L' + c(x - renderer.side/2, y + renderer.height) + 'L' + c(x, y));
                     tr.attr({
-                        fill : 'none',
+                        fill : MapRenderer.neutralCell,
                         strokeWidth : 2,
-                        stroke : '#000'
+                        stroke : '#000',
+                        fillOpacity : 0.5
                     });
                     // S.text(x + 5, y + 10, [cellIndex / 2 - 1, rowIndex - 1, cellIndex / 2 - rowIndex].join(','));
                     renderer.snap.text(x + 5, y + 10, [cell[0], cell[1], cell[0] - cell[1]].join(','));
                 } else {
                     tr = renderer.snap.path('M' + c(x, y) + 'L' + c(x + renderer.side, y) + 'L' + c(x + renderer.side/2, y + renderer.height) + 'L' + c(x, y));
                     tr.attr({
-                        fill : 'none',
+                        fill : MapRenderer.neutralCell,
                         strokeWidth : 2,
-                        stroke : '#000'
+                        stroke : '#000',
+                        fillOpacity : 0.5
                     });
                 }
             });
@@ -66,16 +72,14 @@ Class('MapRenderer')({
 
         renderUnit : function(unit) {
             var renderer = this;
-            var YOLO_OFFSET_X = 300;
-            var YOLO_OFFSET_Y = 200;
             var sprite;
             var range, r;
             var nx, ny;
             var c = function(x, y) {
                 return x + ',' + y;
             };
-            gy = (unit.y * renderer.height) + YOLO_OFFSET_Y;
-            gx = ((unit.x * renderer.side) - (unit.y * renderer.side / 2)) + YOLO_OFFSET_X;
+            gy = (unit.y * renderer.height) + renderer.offsetY;
+            gx = ((unit.x * renderer.side) - (unit.y * renderer.side / 2)) + renderer.offsetX;
             s = renderer.snap.circle(gx, gy, 10);
             s.attr({
                 fill : unit.faction,

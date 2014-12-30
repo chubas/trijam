@@ -47,6 +47,11 @@ Class('Server')({
                 res.sendFile('views/index.html', {'root': __dirname + '/..'});
             });
 
+            app.get('/maps/:map', function(req, res) {
+                fs.readFile('../maps/' + req.params.map + '.txt', function() {
+                })
+            });
+
             return this;
         },
 

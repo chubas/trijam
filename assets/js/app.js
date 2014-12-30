@@ -11,14 +11,15 @@ Class('App').inherits(Widget)({
             });
 
             /***/
-
-
             var map1 = "\
--3,-2LR | -2,-2LR | -1,-2LR | 0,-2LR | 1,-2L\n\
--3,-1LR | -2,-1LR | -1,-1LR | 0,-1LR | 1,-1LR | 2,-1L\n\
--3,0R | -2,0LR | -1,0LR | 0,0LR | 1,0LR | 2,0LR\n\
--2,1R | -1,1LR | 0,1LR | 1,1LR | 2,1LR\n\
-            ";
+-4,-4LR | -3,-4LR | -2,-4LR | -1,-4LR | 0,-4L |\
+-4,-3LR | -3,-3LR | -2,-3LR | -1,-3LR | 0,-3LR | 1,-3L |\
+-4,-2LR | -3,-2LR | -2,-2LR | -1,-2LR | 0,-2LR | 1,-2LR | 2,-2L |\
+-4,-1LR | -3,-1LR | -2,-1LR | -1,-1LR | 0,-1LR | 1,-1LR | 2,-1LR | 3,-1L |\
+-4,0R   | -3,0LR  | -2,0LR  | -1,0LR  | 0,0LR  | 1,0LR  | 2,0LR  | 3,0LR |\
+          -3,1R   | -2,1LR  | -1,1LR  | 0,1LR  | 1,1LR  | 2,1LR  | 3,1LR |\
+                    -2,2R   | -1,2LR  | 0,2LR  | 1,2LR  | 2,2LR  | 3,2LR |\
+                              -1,3R   | 0,3LR  | 1,3LR  | 2,3LR  | 3,3LR"
             var map = Map.parseMap(map1);
             var cells = map.cells;
 
@@ -28,8 +29,8 @@ Class('App').inherits(Widget)({
                 id : 'ARBITRARY_STRING_PLATYPUS',
                 faction : 'red',
                 hp : 4,
-                x : 1,
-                y : 1,
+                x : 0,
+                y : 0,
                 range : [
                     [[-1, -1, 'L'], 1],
                     [[-1, -1, 'R'], 1],
