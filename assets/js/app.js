@@ -24,7 +24,6 @@ Class('App').inherits(Widget)({
             var cells = map.cells;
 
 
-
             var soldier = new Unit({
                 id : 'ARBITRARY_STRING_PLATYPUS',
                 faction : 'red',
@@ -50,6 +49,7 @@ Class('App').inherits(Widget)({
             });
 
             var units = [soldier, marine];
+            // var units = [soldier];
 
             var renderer = new MapRenderer({ map : map, units : units });
             renderer.renderGrid();

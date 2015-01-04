@@ -8,11 +8,13 @@ Class('MapRenderer')({
         units : null,
 
         init : function(config) {
+            var renderer = this;
+
             Object.keys(config || {}).forEach(function (propertyName) {
                 this[propertyName] = config[propertyName];
             }, this);
 
-            this.snap = Snap(1000, 800);
+            this.snap = Snap($('#board')[0]);
             this.side = this.side || 60;
             this.height = Math.tan(Math.PI/3) * this.side / 2;
 
@@ -22,6 +24,44 @@ Class('MapRenderer')({
             this.offsetX = 300;
             this.offsetY = 240;
             // this.cellSprites = {};
+
+            var marker = this.snap.circle(0, 0, 20).attr({
+                fill : '#00FFFF'
+            });
+            var locMarker = this.snap.circle(0, 0, 8).attr({
+                fill : '#00F'
+            });
+
+            this.snap.mousemove(function(event, x, y) {
+                var gridCoords = renderer.gridCoordsFor(x ,y);
+                var pixelCoords = renderer.pixelCoordsFor(gridCoords[0], gridCoords[1]);
+                // console.log(x, y, gridCoords);
+                marker.attr({
+                    cx : pixelCoords[0],
+                    cy : pixelCoords[1]
+                });
+                locMarker.attr({
+                    cx : x,
+                    cy : y
+                });
+            });
+        },
+
+        /* Given vertice V(x, y), return the pixel coordinates on screen */
+        pixelCoordsFor : function(x, y) {
+            var renderer = this;
+            var pixelY = (y * renderer.height) + renderer.offsetY;
+            var pixelX = (x * renderer.side) - (y * renderer.side / 2) + renderer.offsetX;
+            return [pixelX, pixelY];
+        },
+
+        /* Returns the closest grid coords V(gx,gy) for pixel coords x,y */
+        gridCoordsFor : function(x, y) {
+            var renderer = this;
+            var gridY = Math.round((y - renderer.offsetY) / renderer.height);
+            // console.log("--> (", y, " - ", renderer.offsetY, ") / ", renderer.height, ") = ", ((y - renderer.offsetY) / renderer.height), "--> ", gridY)
+            var gridX = Math.round((x - renderer.offsetX + (gridY * renderer.side / 2)) / renderer.side);
+            return [gridX, gridY];
         },
 
         renderGrid : function() {
@@ -35,8 +75,9 @@ Class('MapRenderer')({
             var tr;
 
             this.map.cells.forEach(function(cell) {
-                y = (cell[1] * renderer.height) + renderer.offsetY;
-                x = (cell[0] * renderer.side) - (cell[1] * renderer.side / 2) + renderer.offsetX;
+                var pixelCoords = renderer.pixelCoordsFor(cell[0], cell[1]);
+                x = pixelCoords[0];
+                y = pixelCoords[1];
 
                 if(cell[2] === 'L') {
                     tr = renderer.snap.path('M' + c(x, y) + 'L' + c(x + renderer.side/2, y + renderer.height) + 'L' + c(x - renderer.side/2, y + renderer.height) + 'L' + c(x, y));
@@ -58,8 +99,6 @@ Class('MapRenderer')({
                     });
                 }
             });
-
-
         },
 
         // This could be moved eventually to a different renderer
@@ -75,11 +114,13 @@ Class('MapRenderer')({
             var sprite;
             var range, r;
             var nx, ny;
+            var gx, gy;
             var c = function(x, y) {
                 return x + ',' + y;
             };
             gy = (unit.y * renderer.height) + renderer.offsetY;
             gx = ((unit.x * renderer.side) - (unit.y * renderer.side / 2)) + renderer.offsetX;
+            console.log("Unit at ", unit.x, unit.y, " : ", gx, gy);
             s = renderer.snap.circle(gx, gy, 10);
             s.attr({
                 fill : unit.faction,
@@ -113,7 +154,21 @@ Class('MapRenderer')({
             // console.log("RANGEGROUP: ", rangeGroup);
             unitGroup.add(s);
             unitGroup.add(rangeGroup);
-            unitGroup.drag();
+            unitGroup.drag(function(dx, dy, x, y) {
+                var gridCoords = renderer.gridCoordsFor(x, y);
+                var pixelCoords = renderer.pixelCoordsFor(gridCoords[0], gridCoords[1]);
+                console.log("On move: ", x, y, gridCoords, 'from: ', pixelCoords);
+                // gx, gy
+                // unitGroup.attr({
+                //     x : gridCoords[0],
+                //     y : gridCoords[1]
+                // });
+                this.transform('T' + (pixelCoords[0] - gx) + ',' + (pixelCoords[1] - gy))
+            }, function(dx, dy, x, y) {
+                console.log("On start: ", arguments);
+            }, function() {
+                console.log("On end: ", arguments);
+            });
             renderer.unitSprites[unit.id] = unitGroup;
             return unitGroup;
         }

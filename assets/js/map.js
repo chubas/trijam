@@ -6,7 +6,6 @@ Class('Map')({
     parseMap : function(mapString) {
         var cells = [];
         mapString.replace(/^\s+|\s+$/).split(/\n|\|/).forEach(function(cell) {
-            console.log("Parsing: ", cell);
             var match = cell.match(/(-?\d+),(-?\d+)(L?)(R?)/);
             if(!match) {
                 console.log("Could not parse cell: ", cell);
@@ -19,9 +18,9 @@ Class('Map')({
                 cells.push([parseInt(match[1], 10), parseInt(match[2], 10), 'R']);
             }
         });
-        cells.forEach(function(cell) {
-            console.log(" Cell: [" + cell.join(',') + "]")
-        });
+        // cells.forEach(function(cell) {
+        //     console.log(" Cell: [" + cell.join(',') + "]")
+        // });
 
         return new Map({ cells : cells });
     },
