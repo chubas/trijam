@@ -1,4 +1,4 @@
-Class('MapRenderer')({
+Class('MapRenderer').includes(CustomEventSupport)({
 
     neutralCell : '#DDD',
 
@@ -82,6 +82,74 @@ Class('MapRenderer')({
             var controlVertices = {};
 
             var createUnitsControl = new CreateUnitsControl();
+            var onControlMouseLeave = function() {
+                console.log("On control mouse leave!!");
+                createUnitsControl.deactivate();
+            };
+
+            createUnitsControl.bind('unit:create', function(event) {
+                var unit;
+                switch(event.data.unit) {
+                    case '1':
+                        unit = new Unit({
+                            id : 'xxx',
+                            faction : 'blue',
+                            hp : 1,
+                            x : event.data.vertex[0],
+                            y : event.data.vertex[1],
+                            range : [
+                                [[-1, -1, 'R'], 1]
+                            ]
+                        });
+                        break;
+                    case '2':
+                        unit = new Unit({
+                            id : 'xxx',
+                            faction : 'blue',
+                            hp : 1,
+                            x : event.data.vertex[0],
+                            y : event.data.vertex[1],
+                            range : [
+                                [[-1, -1, 'L'], 1],
+                                [[-1, -1, 'R'], 1],
+                                [[0, -1, 'L'], 1]
+                            ]
+                        });
+                        break;
+                    case '3':
+                        unit = new Unit({
+                            id : 'xxx',
+                            faction : 'blue',
+                            hp : 1,
+                            x : event.data.vertex[0],
+                            y : event.data.vertex[1],
+                            range : [
+                                [[-1, -1, 'R'], 1],
+                                [[-1, -2, 'L'], 1]
+                            ]
+                        });
+                        break;
+                    case '4':
+                        unit = new Unit({
+                            id : 'xxx',
+                            faction : 'blue',
+                            hp : 1,
+                            x : event.data.vertex[0],
+                            y : event.data.vertex[1],
+                            range : [
+                                [[-1, -1, 'L'], 1],
+                                [[0, -1, 'L'], 1],
+                                [[0, 0, 'L'], 1]
+                            ]
+                        });
+                        break;
+                    default :
+                        throw new Error('Unrecognized unit');
+
+                }
+                renderer.renderUnit(unit);
+                createUnitsControl.deactivate();
+            });
 
             this.map.cells.forEach(function(cell) {
 
@@ -131,7 +199,7 @@ Class('MapRenderer')({
                 touchingVertices.forEach(function(deltas) {
                     vertice = V(cell[0] + deltas[0], cell[1] + deltas[1]);
                     if(!controlVertices[vertice]) {
-                        verticeCoords = renderer.pixelCoordsFor(
+                        var verticeCoords = renderer.pixelCoordsFor(
                             cell[0] + deltas[0],
                             cell[1] + deltas[1]
                         );
@@ -143,13 +211,22 @@ Class('MapRenderer')({
                             fill : '#293',
                             opacity : 0.7
                         }).hover(function(event, x, y) {
-                            console.log("........")
-                            console.log(arguments);
-                            console.log("Activating at  ", x, y);
-                            createUnitsControl.activateAt(x, y);
+                            createUnitsControl.currentVertex = [
+                                cell[0] + deltas[0],
+                                cell[1] + deltas[1]
+                            ]
+                            createUnitsControl.activateAt(
+                                Math.round(verticeCoords[0]),
+                                Math.round(verticeCoords[1])
+                            );
                         }, function(event, x, y) {
-                            console.log("Deactivating!");
-                            createUnitsControl.deactivate();
+                            if(event.relatedTarget === createUnitsControl.element[0]) {
+                                console.log("Over control!");
+                                createUnitsControl.element.unbind('mouseleave').bind('mouseleave', onControlMouseLeave);
+                            } else {
+                                console.log("Deactivating!", arguments);
+                                createUnitsControl.deactivate();
+                            }
                         });
                     }
                 });
@@ -177,7 +254,7 @@ Class('MapRenderer')({
             gy = (unit.y * renderer.height) + renderer.offsetY;
             gx = ((unit.x * renderer.side) - (unit.y * renderer.side / 2)) + renderer.offsetX;
             console.log("Unit at ", unit.x, unit.y, " : ", gx, gy);
-            s = renderer.snap.circle(gx, gy, 10);
+            s = renderer.snap.circle(gx, gy, 16);
             s.attr({
                 fill : unit.faction,
                 strokeWidth : 1,

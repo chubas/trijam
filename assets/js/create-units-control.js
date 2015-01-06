@@ -1,5 +1,5 @@
 // TODO: We don't need all Widget, yet
-Class('CreateUnitsControl')({
+Class('CreateUnitsControl').includes(CustomEventSupport)({
     prototype : {
 
         // Needs to be associated with a vertex
@@ -11,7 +11,7 @@ Class('CreateUnitsControl')({
                 this[propertyName] = config[propertyName];
             }, this);
 
-            this.element = $('<div class="create-units-control"> Tier 1 | Tier 2 </div>');
+            this.element = $('<div class="create-units-control"></div>');
             var unitNames = ['1', '2', '3', '4'];
 
             unitNames.forEach(function(unitName) {
@@ -28,6 +28,12 @@ Class('CreateUnitsControl')({
 
         createUnit : function(unitName) {
             console.log(unitName, 'has been created on', this.currentVertex, '!!')
+            this.dispatch('unit:create', {
+                data : {
+                    vertex : this.currentVertex,
+                    unit : unitName
+                }
+            });
         },
 
         activateAt : function(x, y) {

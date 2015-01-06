@@ -3,9 +3,16 @@ body {
 }
 
 .create-units-control {
-    width : 100px;
-    height : 120px;
+    width : 140px;
+    height : 160px;
     position : absolute;
     background-color: #BCB;
     display : none;
+    padding : 20px;
+}
+
+.unit-thumb {
+    float : left;
+    padding : 10px;
+    cursor : pointer;
 }
