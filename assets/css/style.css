@@ -1,3 +1,11 @@
 body {
     font-family: Tahoma, Geneva, sans-serif;
 }
+
+.create-units-control {
+    width : 100px;
+    height : 120px;
+    position : absolute;
+    background-color: #BCB;
+    display : none;
+}

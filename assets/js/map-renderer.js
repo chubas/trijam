@@ -25,26 +25,28 @@ Class('MapRenderer')({
             this.offsetY = 240;
             // this.cellSprites = {};
 
-            var marker = this.snap.circle(0, 0, 20).attr({
-                fill : '#00FFFF'
-            });
-            var locMarker = this.snap.circle(0, 0, 8).attr({
-                fill : '#00F'
-            });
+            /********* Debug markers **************/
+            // var marker = this.snap.circle(0, 0, 20).attr({
+            //     fill : '#00FFFF'
+            // });
+            // var locMarker = this.snap.circle(0, 0, 8).attr({
+            //     fill : '#00F'
+            // });
 
-            this.snap.mousemove(function(event, x, y) {
-                var gridCoords = renderer.gridCoordsFor(x ,y);
-                var pixelCoords = renderer.pixelCoordsFor(gridCoords[0], gridCoords[1]);
-                // console.log(x, y, gridCoords);
-                marker.attr({
-                    cx : pixelCoords[0],
-                    cy : pixelCoords[1]
-                });
-                locMarker.attr({
-                    cx : x,
-                    cy : y
-                });
-            });
+            // this.snap.mousemove(function(event, x, y) {
+            //     var gridCoords = renderer.gridCoordsFor(x ,y);
+            //     var pixelCoords = renderer.pixelCoordsFor(gridCoords[0], gridCoords[1]);
+            //     // console.log(x, y, gridCoords);
+            //     marker.attr({
+            //         cx : pixelCoords[0],
+            //         cy : pixelCoords[1]
+            //     });
+            //     locMarker.attr({
+            //         cx : x,
+            //         cy : y
+            //     });
+            // });
+            /***************************************/
         },
 
         /* Given vertice V(x, y), return the pixel coordinates on screen */
@@ -74,7 +76,15 @@ Class('MapRenderer')({
             var x, y;
             var tr;
 
+            var V = function(x, y) {
+                return [x, y].join('_');
+            }
+            var controlVertices = {};
+
+            var createUnitsControl = new CreateUnitsControl();
+
             this.map.cells.forEach(function(cell) {
+
                 var pixelCoords = renderer.pixelCoordsFor(cell[0], cell[1]);
                 x = pixelCoords[0];
                 y = pixelCoords[1];
@@ -89,6 +99,8 @@ Class('MapRenderer')({
                     });
                     // S.text(x + 5, y + 10, [cellIndex / 2 - 1, rowIndex - 1, cellIndex / 2 - rowIndex].join(','));
                     renderer.snap.text(x + 5, y + 10, [cell[0], cell[1], cell[0] - cell[1]].join(','));
+
+
                 } else {
                     tr = renderer.snap.path('M' + c(x, y) + 'L' + c(x + renderer.side, y) + 'L' + c(x + renderer.side/2, y + renderer.height) + 'L' + c(x, y));
                     tr.attr({
@@ -98,7 +110,51 @@ Class('MapRenderer')({
                         fillOpacity : 0.5
                     });
                 }
+
             });
+
+            // Since there are no layers, render them after to be on top
+            this.map.cells.forEach(function(cell) {
+                var touchingVertices;
+                if(cell[2] === 'L') {
+                    // the triangle T(x,y)L touches the vertexes V(x, y), V(x, y+1) and V(x+1, y+1)
+                    touchingVertices = [[0, 0], [0, 1], [1, 1]];
+                } else {
+                    // the triangle T(x,y)R touches the vertexes V(x, y), V(x+1, y) and V(x+1, y+1)
+                    touchingVertices = [[0, 0], [1, 0], [1, 1]];
+                }
+
+                var pixelCoords = renderer.pixelCoordsFor(cell[0], cell[1]);
+                x = pixelCoords[0];
+                y = pixelCoords[1];
+
+                touchingVertices.forEach(function(deltas) {
+                    vertice = V(cell[0] + deltas[0], cell[1] + deltas[1]);
+                    if(!controlVertices[vertice]) {
+                        verticeCoords = renderer.pixelCoordsFor(
+                            cell[0] + deltas[0],
+                            cell[1] + deltas[1]
+                        );
+                        controlVertices[vertice] = renderer.snap.circle(
+                            verticeCoords[0],
+                            verticeCoords[1],
+                            16
+                        ).attr({
+                            fill : '#293',
+                            opacity : 0.7
+                        }).hover(function(event, x, y) {
+                            console.log("........")
+                            console.log(arguments);
+                            console.log("Activating at  ", x, y);
+                            createUnitsControl.activateAt(x, y);
+                        }, function(event, x, y) {
+                            console.log("Deactivating!");
+                            createUnitsControl.deactivate();
+                        });
+                    }
+                });
+            });
+
         },
 
         // This could be moved eventually to a different renderer
@@ -157,7 +213,7 @@ Class('MapRenderer')({
             unitGroup.drag(function(dx, dy, x, y) {
                 var gridCoords = renderer.gridCoordsFor(x, y);
                 var pixelCoords = renderer.pixelCoordsFor(gridCoords[0], gridCoords[1]);
-                console.log("On move: ", x, y, gridCoords, 'from: ', pixelCoords);
+                // console.log("On move: ", x, y, gridCoords, 'from: ', pixelCoords);
                 // gx, gy
                 // unitGroup.attr({
                 //     x : gridCoords[0],
@@ -165,9 +221,9 @@ Class('MapRenderer')({
                 // });
                 this.transform('T' + (pixelCoords[0] - gx) + ',' + (pixelCoords[1] - gy))
             }, function(dx, dy, x, y) {
-                console.log("On start: ", arguments);
+                // console.log("On start: ", arguments);
             }, function() {
-                console.log("On end: ", arguments);
+                // console.log("On end: ", arguments);
             });
             renderer.unitSprites[unit.id] = unitGroup;
             return unitGroup;
