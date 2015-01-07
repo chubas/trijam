@@ -221,10 +221,10 @@ Class('MapRenderer').includes(CustomEventSupport)({
                             );
                         }, function(event, x, y) {
                             if(event.relatedTarget === createUnitsControl.element[0]) {
-                                console.log("Over control!");
+                                // console.log("Over control!");
                                 createUnitsControl.element.unbind('mouseleave').bind('mouseleave', onControlMouseLeave);
                             } else {
-                                console.log("Deactivating!", arguments);
+                                // console.log("Deactivating!", arguments);
                                 createUnitsControl.deactivate();
                             }
                         });
@@ -248,14 +248,16 @@ Class('MapRenderer').includes(CustomEventSupport)({
             var range, r;
             var nx, ny;
             var gx, gy;
+            var unitGroup;
             var c = function(x, y) {
                 return x + ',' + y;
             };
             gy = (unit.y * renderer.height) + renderer.offsetY;
             gx = ((unit.x * renderer.side) - (unit.y * renderer.side / 2)) + renderer.offsetX;
             console.log("Unit at ", unit.x, unit.y, " : ", gx, gy);
-            s = renderer.snap.circle(gx, gy, 16);
-            s.attr({
+            // The circle piece that goes in each occupied vertex
+            var unitBody = renderer.snap.circle(gx, gy, 16);
+            unitBody.attr({
                 fill : unit.faction,
                 strokeWidth : 1,
                 stroke : '#000'
@@ -263,6 +265,9 @@ Class('MapRenderer').includes(CustomEventSupport)({
             rangeGroup = renderer.snap.g();
             unitGroup = renderer.snap.g();
             unit.range.forEach(function(range) {
+
+                var r;
+
                 ny = gy + (range[0][1] * renderer.height);
                 nx = gx + (range[0][0] * renderer.side) - (renderer.side / 2 * range[0][1]);
                 // console.log("G: ", gx, gy);
@@ -281,13 +286,48 @@ Class('MapRenderer').includes(CustomEventSupport)({
                     stroke : '#000',
                     opacity: 0.5
                 });
+
+                if(typeof(debugline) === "undefined") {
+                    debugLine = renderer.snap.path('M0,0L0,0').attr({
+                        stroke : '#FF0000',
+                        strokeWidth : 5
+                    });
+                }
+                r.drag(function(dx, dy, x, y) {
+                    var pixelCoords = renderer.pixelCoordsFor(unit.x, unit.y);
+                    var direction = renderer.calculateDirection(
+                        { x : pixelCoords[0], y : pixelCoords[1] }, // origin
+                        { x : x, y : y }
+                    );
+                    var debugPath = 'M' + c(x, y) + 'L' + c.apply(renderer, renderer.pixelCoordsFor(unit.x, unit.y));
+                    debugLine.attr({ path : debugPath });
+                    debugLine.attr({
+                        opacity : 1
+                    });
+
+                    // ROTATE By the difference of positions
+
+                    // console.log("-> ", debugPath);
+                }, function() {
+                    // On start
+                    r.attr({ opacity : 0.75 });
+                }, function() {
+                    // On end
+                    r.attr({ opacity : 0.5 });
+                    debugLine.attr({
+                        opacity : 0
+                    });
+                });
+
                 // console.log('ADD', r);
                 rangeGroup.add(r);
             });
             // console.log("RANGEGROUP: ", rangeGroup);
-            unitGroup.add(s);
             unitGroup.add(rangeGroup);
-            unitGroup.drag(function(dx, dy, x, y) {
+            unitGroup.add(unitBody);
+
+
+            unitBody.drag(function(dx, dy, x, y) {
                 var gridCoords = renderer.gridCoordsFor(x, y);
                 var pixelCoords = renderer.pixelCoordsFor(gridCoords[0], gridCoords[1]);
                 // console.log("On move: ", x, y, gridCoords, 'from: ', pixelCoords);
@@ -296,16 +336,38 @@ Class('MapRenderer').includes(CustomEventSupport)({
                 //     x : gridCoords[0],
                 //     y : gridCoords[1]
                 // });
-                this.transform('T' + (pixelCoords[0] - gx) + ',' + (pixelCoords[1] - gy))
-            }, function(dx, dy, x, y) {
-                // console.log("On start: ", arguments);
+                unitGroup.transform('T' + (pixelCoords[0] - gx) + ',' + (pixelCoords[1] - gy))
+
             }, function() {
-                // console.log("On end: ", arguments);
+                // On start
+            }, function() {
+                // On end
             });
             renderer.unitSprites[unit.id] = unitGroup;
             return unitGroup;
-        }
+        },
 
+        // To be consistent with Ruby's API, pass two objects with the 'x' and
+        // 'y' coordinates as keys from the origin and destination params
+        calculateDirection : function(origin, destination) {
+            var x = destination.x - origin.x;
+            var y = destination.y - origin.y;
+            // console.log("x: ", x, " y: ", y);
+            var q = Math.PI / 3;
+            var angle = Math.atan2(y, x) % (2 * Math.PI); // Extract module so the number is always between 0 and q
+            // Fortunately, we have an ECMA Standard that is implementation-dependant-ly enforced!
+            // http://www.ecma-international.org/ecma-262/5.1/#sec-15.8.2.5
+            // D:<
+            if(angle < 0) {
+                angle = angle + (2 * Math.PI);
+            }
+
+            // console.log("ANGLE: ", angle);
+            var direction = Math.floor(angle / q);
+
+            // console.log("Result DIRECTION", direction);
+            return direction;
+        },
 
     }
 
