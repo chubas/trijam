@@ -337,6 +337,8 @@ Class('MapRenderer').includes(CustomEventSupport)({
                 //     y : gridCoords[1]
                 // });
                 unitGroup.transform('T' + (pixelCoords[0] - gx) + ',' + (pixelCoords[1] - gy))
+                unit.x = gridCoords[0];
+                unit.y = gridCoords[1];
 
             }, function() {
                 // On start

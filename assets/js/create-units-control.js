@@ -37,7 +37,7 @@ Class('CreateUnitsControl').includes(CustomEventSupport)({
         },
 
         activateAt : function(x, y) {
-            return;
+            // return;
             this.element.css({
                 display : 'block',
                 top : y,
